@@ -1,0 +1,116 @@
+/*a new take on importing excel loader template files to make the file easier to use*/
+/*global require*/
+const xlsx = require('xlsx');
+const R = require('ramda');
+const filePath = 'C:/path/codes.xlsx';
+
+export function xlsxToJson(file){
+
+    const workbook = xlsx.read(file, {cellStyles:true, type:'buffer'});
+    const sheet = workbook.Sheets['Projects'];
+
+
+
+    const getHeadings = (sheet) => {
+        let headings = {};
+        const getHead = (value,cell) => {
+            let cellRef = xlsx.utils.decode_cell(cell);
+            let row = cellRef.r;
+            let col = cellRef.c;
+            if (row === 0) {
+                headings[col] = value;
+            }
+        };
+        R.forEachObjIndexed(getHead)(sheet);
+        return headings;
+
+    }; //returns an object containing column letter keys with headings as their values. e.g. A:{...v:projectId}
+
+
+
+    const getCellValue = R.pathOr(null)(['v']);
+    const toRow = (sheet,key, headings) => {
+        let newData = {};
+        const processCell = (value,cell) => {
+
+            let cellRef = xlsx.utils.decode_cell(cell);
+            let row = cellRef.r;
+            let col = cellRef.c;
+            let header = headings[col];
+
+
+            if (row!==0){
+                if (!newData.hasOwnProperty(row)) {
+
+                    newData[row] = {codes:{},fields:{},projectFinancial:{}};
+
+                }
+                let headerValue = getCellValue(header); //the value of the header e.g. projectId
+                let cellValue = getCellValue(value); //the value of the current cell
+                newData[row][headerValue] = cellValue;
+            }
+        };
+        R.forEachObjIndexed(processCell)(sheet);
+        return newData;
+
+    };
+
+
+    const processSheet = (sheet,key) => {
+        let head = ['!ref','!cols','!margins','!rows']; //default sheet properties that are not required
+        let headings = getHeadings(sheet);
+        //.R.forEachObjIndexed(getHeadings)(sheet);
+        let data = R.omit(head)(sheet);
+
+        let newData = toRow(data,key,headings);
+        return newData;
+
+    };
+
+
+
+
+    let projects = xlsx.utils.sheet_to_json(workbook.Sheets['Projects']);
+    let codes = xlsx.utils.sheet_to_json(workbook.Sheets['Codes']);
+    let fields = xlsx.utils.sheet_to_json(workbook.Sheets['Configured Fields']);
+
+    const eq = R.eqProps('workspaceId' && 'projectId');
+
+
+    const processCodes = (code) => {
+        let x = R.find(eq(code))(projects);
+        let y = R.omit(['workspaceId','projectId'])(code);
+
+        return {...x,projectId:code.projectId,workspaceId:code.projectId,codes:y};
+    };
+    const processFields = (field) => {
+        let x = R.find(eq(field))(projects);
+        let y = R.omit(['workspaceId','projectId'])(field);
+
+        return {...x,projectId:field.projectId,workspaceId:field.projectId,fields:y};
+    };
+
+    let codesJson = R.map(processCodes)(codes);
+    let fieldsJson = R.map(processFields)(fields);
+    console.log(fieldsJson);
+    const processProjects = (acc,x) => {
+        let field = R.find(eq(x))(fieldsJson);
+        let code = R.find(eq(x))(codesJson);
+        let project = R.find(eq(x))(projects);
+        let n = R.mergeAll([field,code,project]);
+        console.log(acc);
+        return [...acc,n]
+
+    };
+    let g = R.reduce(R.maxBy(R.length))([],[projects,fieldsJson,codesJson]);
+    console.log(g);
+    let projectsJson = R.reduce(processProjects,[])(g);
+    console.log(projectsJson);
+
+
+    //let json = Object.values(newData);
+    //return json;
+    //return {json:json,fields:fields,codes:codes};
+
+}
+export default xlsxToJson;

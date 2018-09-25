@@ -1,0 +1,96 @@
+/*a new take on importing excel loader template files to make the file easier to use*/
+/*global require*/
+const xlsx = require('xlsx');
+const R = require('ramda');
+const filePath = 'C:/path/codes.xlsx';
+
+export function xlsxToJson(file,sheetName){
+
+    const workbook = xlsx.read(file, {cellStyles:true, type:'buffer'});
+    const sheet = workbook.Sheets[sheetName];
+
+    const getCellColour = R.pathOr(null)(['s','fgColor','rgb']);
+
+    const getHeadings = (sheet) => {
+        let headings = {};
+        const getHead = (value,cell) => {
+            let cellRef = xlsx.utils.decode_cell(cell);
+            let row = cellRef.r;
+            let col = cellRef.c;
+            if (row === 0) {
+                headings[col] = value;
+            }
+        };
+        R.forEachObjIndexed(getHead)(sheet);
+        return headings;
+
+    }; //returns an object containing column letter keys with headings as their values. e.g. A:{...v:projectId}
+
+
+
+    /*  ---convert xlsx file into row objects---
+
+    colour codes:
+      •  fields: #00B0F0
+      •  codes: #FFC000
+      •  financial: #FF0000
+
+    */
+    const getCellValue = R.pathOr(null)(['v']);
+    const toRow = (sheet,headings) => {
+        let newData = {};
+        const processCell = (value,cell) => {
+
+            let cellRef = xlsx.utils.decode_cell(cell);
+            let row = cellRef.r;
+            let col = cellRef.c;
+            let header = headings[col];
+
+            let headerColour = getCellColour(header);    //returns the hex colour value of the heading for the column of this cell
+            if (row!==0){
+                if (!newData.hasOwnProperty(row)) {
+
+                    newData[row] = {codes:{},fields:{},projectFinancial:{}};
+
+                }
+                let headerValue = getCellValue(header); //the value of the header e.g. projectId
+                let cellValue = getCellValue(value); //the value of the current cell
+                switch (headerColour){
+                    case '00B0F0':
+                    //configured fields
+                        newData[row]['fields'][headerValue]=cellValue;
+                        break;
+                    case'FFC000':
+                    //codes
+                        newData[row]['codes'][headerValue]=cellValue;
+                        break;
+                    case 'FF0000':
+                        newData[row]['projectFinancial'][headerValue]=cellValue;
+                        break;
+                    default:
+                        newData[row][headerValue]=cellValue;
+                        break;
+                }
+            }
+        };
+        R.forEachObjIndexed(processCell)(sheet);
+        return newData;
+
+    };
+
+
+    let head = ['!ref','!cols','!margins','!rows']; //default sheet properties that are not required
+    //let headings = {};
+    let headings = getHeadings(sheet);
+    //.R.forEachObjIndexed(getHeadings)(sheet);
+
+    let data = R.omit(head)(sheet);
+
+    let newData = toRow(data,headings);
+
+    let json = Object.values(newData);
+    return json;
+    //return {json:json,fields:fields,codes:codes};
+
+}
+export default xlsxToJson;

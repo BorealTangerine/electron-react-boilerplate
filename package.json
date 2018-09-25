@@ -22,7 +22,7 @@
     "package-win": "yarn build && electron-builder build --win --x64",
     "postinstall": "node -r babel-register internals/scripts/CheckNativeDep.js && yarn flow-typed && yarn build-dll && electron-builder install-app-deps package.json",
     "postlint-fix": "prettier --ignore-path .eslintignore --single-quote --write '**/*.js'",
-    "precommit": "lint-staged",
+  
     "prestart": "yarn build",
     "start": "cross-env NODE_ENV=production electron ./app/",
     "start-main-dev": "cross-env HOT=1 NODE_ENV=development electron -r babel-register ./app/main.dev.js",
@@ -208,9 +208,18 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.2.0",
+    "axios": "^0.18.0",
+    "bulma": "^0.7.1",
     "devtron": "^1.4.0",
     "electron-debug": "^2.0.0",
+    "eslint-plugin-prettier": "^2.6.2",
+    "folktale": "^2.3.0",
+    "he": "^1.1.1",
     "history": "^4.7.2",
+    "lowdb": "^1.0.0",
+    "mdi-react": "^4.3.0",
+    "moment": "^2.22.2",
+    "ramda": "^0.25.0",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-hot-loader": "^4.3.4",
@@ -220,7 +229,11 @@
     "react-router-redux": "^5.0.0-alpha.6",
     "redux": "^4.0.0",
     "redux-thunk": "^2.3.0",
-    "source-map-support": "^0.5.6"
+    "sanctuary": "^0.15.0",
+    "semantic-ui-react": "^0.82.3",
+    "source-map-support": "^0.5.6",
+    "validator": "^10.7.0",
+    "xlsx-populate": "^1.17.0"
   },
   "devEngines": {
     "node": ">=7.x",

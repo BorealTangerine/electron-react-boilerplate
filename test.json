@@ -1,0 +1,6 @@
+{
+  "posts": [
+    { "title": "post", "body": "body text" },
+    { "title": "second post", "body": "body text" }
+  ]
+}

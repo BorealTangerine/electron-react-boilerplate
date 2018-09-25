@@ -1,0 +1,443 @@
+{
+  "type": "object",
+  "required": ["projectCode", "projectName", "workspaceId"],
+  "properties": {
+    "link": {
+      "type": "string",
+      "format": "url",
+      "readOnly": true
+    },
+    "codeValuesProject": {
+      "type": "array",
+      "description": "The categories of a project.",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/ApiEntityCodeValueProject"
+      }
+    },
+    "projectFinancial": {
+      "description": "The financial fields associated with a project.",
+      "$ref": "#/definitions/ApiEntityProjectFinancial"
+    },
+    "strgyPriorityNum": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The project's priority in the strategic plan. <br />This priority value ranges from 1 to 10,000 with a default of 500. Use of the priority value, such as whether to place higher priority at the lower end of the scale, toward the endpoint 1, or at the higher end, toward 10,000, is at the discretion of the user. This field is not used for calculating data."
+    },
+    "finishDateVariance": {
+      "description": "The duration between the project's finish date and default snapshot. <br />When the field value is generated through a P6 EPPM connection, then it represents the duration between the finish date in the current project and the baseline finish date. <br />This value can only be imported.",
+      "readOnly": true,
+      "$ref": "#/definitions/Duration"
+    },
+    "remainingDuration": {
+      "description": "The duration between the Project Start and Project Finish. <br />This value can be entered manually or can be imported.",
+      "readOnly": true,
+      "$ref": "#/definitions/Duration"
+    },
+    "projectAutoNumber": {
+      "type": "array",
+      "description": "The autonumber settings of a project.",
+      "readOnly": true,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/ApiEntityProjectAutoNumber"
+      }
+    },
+    "forecastStartDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The planned start date of a project's remaining Forecast cost."
+    },
+    "forecastFinishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The planned finish date of a project's remaining Forecast cost."
+    },
+    "startDateVariance": {
+      "description": "The duration between the project's start date and default snapshot. <br />When the field value is generated through a P6 EPPM connection, then it represents the duration between the start date in the current project and the baseline start date. <br />This value can only be imported.",
+      "readOnly": true,
+      "$ref": "#/definitions/Duration"
+    },
+    "actualDuration": {
+      "description": "The Actual Duration represents the total working time between the project Actual Start and Actual Finish for a project. <br />This value can be imported. The Actual Duration field is not editable.",
+      "readOnly": true,
+      "$ref": "#/definitions/Duration"
+    },
+    "actualLinkType": {
+      "type": "string",
+      "description": "The field source for the actuals curve in cash flow.",
+      "enum": ["BUDGET", "UDF", "MANUAL", "ACTUAL", "ACT_P6"]
+    },
+    "percentCompleteWeightedBy": {
+      "type": "string",
+      "description": "The weight for scope items is calculated using quantity.",
+      "readOnly": true,
+      "enum": ["COST", "QUANTITY", "HOURS", "MANUAL"]
+    },
+    "isTemplateFlag": {
+      "type": "boolean",
+      "description": "Indicates the project is a template for creating other projects."
+    },
+    "spendFinishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The finish date for the project actuals.",
+      "readOnly": true
+    },
+    "lastProjectEvaluationDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date on which the project was last evaluated. "
+    },
+    "projectIntegrationType": {
+      "type": "string",
+      "description": "Specifies if the project is integrated with another application.",
+      "enum": ["P6", "UNIFIER"]
+    },
+    "linkPlannedBudgetTo": {
+      "type": "integer",
+      "format": "int64",
+      "description": "Specifies data to which a project planned budget is linked.",
+      "readOnly": true
+    },
+    "plannedBudgetLinkType": {
+      "type": "string",
+      "description": "The field source for the planned budget curve in cash flow.",
+      "enum": ["BUDGET", "UDF", "MANUAL", "ACTUAL", "ACT_P6"]
+    },
+    "isPSyncManaged": {
+      "type": "boolean",
+      "description": "Indicates the project is synchronized with P6 EPPM.",
+      "readOnly": true
+    },
+    "currentApprovedFinishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The finish date for the Current Approved Budget set by the budget planner.",
+      "readOnly": true
+    },
+    "proposedStartDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The start date for the Proposed Budget of the project.",
+      "readOnly": true
+    },
+    "linkForecastToSpend": {
+      "type": "boolean",
+      "description": "Enables you to link project Forecast data to project Actuals data. <br />When linked, any updates to the project's Actuals values will automatically be applied to the project's Forecast values."
+    },
+    "spendEffectiveDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The month in which an actuals value was last added to the project.",
+      "readOnly": true
+    },
+    "currentApprovedStartDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The start date for the Current Approved Budget set by the budget planner.",
+      "readOnly": true
+    },
+    "linkForecastTo": {
+      "type": "integer",
+      "format": "int64",
+      "description": "Specifies data to which a project forecast is linked."
+    },
+    "spendStartDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The start date for the project actuals.",
+      "readOnly": true
+    },
+    "mustFinishByDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The latest date on which the scheduled activities must be complete for a project."
+    },
+    "exchangeRateType": {
+      "type": "string",
+      "description": "The type of an exchange rate.",
+      "enum": ["FLOATING", "PEGGED"]
+    },
+    "forecastLinkType": {
+      "type": "string",
+      "description": "The field source for the forecast curve in cash flow.",
+      "enum": ["BUDGET", "UDF", "MANUAL", "ACTUAL", "ACT_P6"]
+    },
+    "reportCycleNamingBoundary": {
+      "type": "string",
+      "description": "Determines when period names will be reset. The options available are based on the selection for Reporting Cycle. The standard calendar start and end dates are used as boundaries for resetting periods.",
+      "readOnly": true,
+      "enum": [
+        "REPORTING_PERIOD",
+        "YEARLY",
+        "QUARTERLY",
+        "MONTHLY",
+        "SEMIMONTHLY",
+        "WEEKLY",
+        "DAILY"
+      ]
+    },
+    "proposedFinishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The finish date for the Proposed Budget of the project.",
+      "readOnly": true
+    },
+    "scheduledFinishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The calculated latest early finish date, which is based on the schedule most recently generated for the project."
+    },
+    "evaluationScore": {
+      "description": "The quantitative score of a project based on the qualitative ranking of projects against different evaluation categories. This value is used by portfolio managers to prioritize projects.",
+      "$ref": "#/definitions/Percent"
+    },
+    "projectCurrency": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The unique identifier of a currency."
+    },
+    "workspaceId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The workspace the project is associated with."
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date on which work on the project starts. <br />This value can be entered manually or can be imported."
+    },
+    "dataDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The progress point, or \"as-of date\", for activities in the project. Project status is up-to-date as of the data date. You can set the data date when you schedule the project, or you can set it manually. <br />The data date is also used for updating the dates of scope assignments and work packages when they are not linked to activities."
+    },
+    "description": {
+      "type": "string",
+      "description": "The detailed summary for the project. <br />The description provides more information than short names or titles. <br />It can give background information or establish a purpose for the item. <br />These details help differentiate between items with similar names and are especially useful in multi-user environments.",
+      "enum": ["Length[1-4000]"]
+    },
+    "status": {
+      "type": "string",
+      "description": "The current status of a project. <br />Proposal: The project is a project proposal and has not been extensively planned nor accrued any costs. <br />Rejected: The project proposal has been rejected and will not be initiated as a project. <br />Planned: The project is currently planned for execution. Project managers input expected project costs and other project data during this stage. <br />Active: The project is currently active and being executed. <br />Inactive: The project has been rendered inactive and will temporarily accrue no costs. <br />Complete: The project has been successfully completed and will no longer accrue costs.",
+      "enum": [
+        "PROPOSAL",
+        "REJECTED",
+        "PLANNED",
+        "ACTIVE",
+        "INACTIVE",
+        "COMPLETE"
+      ]
+    },
+    "actualFinish": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The Actual Finish displays the date on which a project is considered complete. <br />This value can be entered manually or can be imported."
+    },
+    "actualStart": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The Actual Start indicates the date work on the project began. <br />This value can be entered manually or can be imported."
+    },
+    "calendarId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The unique identifier for the calendar."
+    },
+    "planStartDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The start date for the time phased Planned Budget of the project. <br />Planned Budget cost spread will adjust when this date is changed. <br />The Project Planned Start also represents the earliest date that activities can occur within a project schedule."
+    },
+    "pegRate": {
+      "type": "number",
+      "description": "The custom exchange rate for a pegged exchange rate."
+    },
+    "countryCode": {
+      "type": "string",
+      "description": "The country for a location."
+    },
+    "image": {
+      "description": "The image associated with a project.",
+      "readOnly": true,
+      "$ref": "#/definitions/ApiEntityProjectImage"
+    },
+    "projectCode": {
+      "type": "string",
+      "description": "The unique identifier for a project set by the user who created the project.",
+      "enum": ["Length[1-60]"]
+    },
+    "riskScore": {
+      "type": "integer",
+      "format": "int32",
+      "description": "The risk score value is based on the probability and impacts of a risk. It is derived from the probability impact matrix and any associated rules."
+    },
+    "addressLine1": {
+      "type": "string",
+      "description": "The first line of the address of a location. <br />This might be the building number and street address."
+    },
+    "stateName": {
+      "type": "string",
+      "description": "The state, region, or province of a location."
+    },
+    "securityGuid": {
+      "type": "string",
+      "description": "Globally unique identifier of a project.",
+      "readOnly": true
+    },
+    "linkActualTo": {
+      "type": "integer",
+      "format": "int64",
+      "description": "Specifies data to which project actuals data is linked."
+    },
+    "addressLine2": {
+      "type": "string",
+      "description": "The second line of the address of a location. <br />This might be a neighborhood or town."
+    },
+    "postalCode": {
+      "type": "string",
+      "description": "The postal code, post code, or zip code of a location."
+    },
+    "riskLevel": {
+      "type": "string",
+      "description": "The risk level assigned to the project. <br />Projects can have a risk level of very high, high, medium, low, or very low. <br />You can use risk level to determine what projects should be included in your plans, as well as which projects should be of priority.",
+      "enum": ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "VERY_LOW", "NULL"]
+    },
+    "latitude": {
+      "type": "number",
+      "format": "double",
+      "description": "The geographical coordinate for the latitude of the location. <br />The default format for latitude is decimal degrees format, but the format you need to use will depend on your geolocation service."
+    },
+    "locationName": {
+      "type": "string",
+      "description": "A name for the location that your users will understand and recognize."
+    },
+    "finishDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date on which all project work is complete. <br />This value can be entered manually or can be imported."
+    },
+    "cityName": {
+      "type": "string",
+      "description": "The city name for a location."
+    },
+    "websiteUrl": {
+      "type": "string",
+      "description": "The link to a website related to the project.",
+      "enum": ["Length[1-200]"]
+    },
+    "stateCode": {
+      "type": "string",
+      "description": "A unique identifier for the state or province."
+    },
+    "longitude": {
+      "type": "number",
+      "format": "double",
+      "description": "The geographical coordinate for the longitude of the location. <br />The default format for longitude is decimal degrees format, but the format you need to use will depend on your geolocation service."
+    },
+    "planEndDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The finish date for the time phased Planned Budget of the project. <br />Planned Budget cost spread will adjust when this date is changed."
+    },
+    "recordCount": {
+      "type": "integer",
+      "format": "int32",
+      "description": "The number of comments on a project."
+    },
+    "sourceId": {
+      "type": "string",
+      "description": "The unique identifier of a project in an external source."
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The name of the project.",
+      "enum": ["Length[1-255]"]
+    },
+    "priorityNum": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The project's priority in the strategic plan. <br />This priority value ranges from 1 to 10,000 with a default of 500. Use of the priority value, such as whether to place higher priority at the lower end of the scale, toward the endpoint 1, or at the higher end, toward 10,000, is at the discretion of the user. This field is not used for calculating data."
+    },
+    "parentProject": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The workspace the project is associated with.",
+      "readOnly": true
+    },
+    "riskMatrixId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The risk matrix assigned to the project for calculating project risk scores."
+    },
+    "planDuration": {
+      "description": "The duration between Project Planned Start and Project Planned Finish. <br />This value can be entered manually or can be imported.",
+      "readOnly": true,
+      "$ref": "#/definitions/Duration"
+    },
+    "reportCycleId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The reporting cycle assigned to the project."
+    },
+    "percentComplete": {
+      "description": "The estimated percentage of work that has been completed on the project.",
+      "$ref": "#/definitions/Percent"
+    },
+    "projectSettings": {
+      "type": "array",
+      "readOnly": true,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/ApiEntityProjectSetting"
+      }
+    },
+    "sequenceNumber": {
+      "type": "integer",
+      "format": "int32",
+      "description": "Determines the order of appearance of projects in a list."
+    },
+    "projectId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The unique identifier for the project. This value should not be provided in create operation request data, however, it is required for update requests."
+    },
+    "manager": {
+      "type": "string",
+      "description": "The manager or person responsible for the project."
+    },
+    "evaluationMatrixId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The evaluation matrix of a calendar."
+    },
+    "projectCashFlows": {
+      "type": "array",
+      "description": "The cash flow of a project.",
+      "items": {
+        "$ref": "#/definitions/ApiEntityProjectCashFlow"
+      }
+    },
+    "projectConfiguredFields": {
+      "description": "The configured fields of a project.",
+      "$ref": "#/definitions/ApiEntityProjectConfiguredFields"
+    },
+    "copyFromProjectId": {
+      "type": "integer",
+      "format": "int64",
+      "description": "The system-generated identifier of the project this data was copied from."
+    },
+    "summarizedDataDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The data date of a project."
+    },
+    "updateDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date when the record was last updated. Used for viewing and filtering records, obtained ONLY from GET calls, modified on and after a particular date. Not a part of POST response.",
+      "readOnly": true
+    }
+  }
+}

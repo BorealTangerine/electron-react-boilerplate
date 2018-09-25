@@ -1,0 +1,206 @@
+/*globals*/
+import { xlsxToJson } from './shared/newJson';
+import {findIndex, transform, merge, find } from 'lodash';
+import { getProjects } from './shared/getProjects';
+import workspaces from './shared/workspaces';
+import mapIds from './shared/mapIds';
+import { projectInProjectsArray } from './shared/checkExists';
+import { retrieveCodeData, retrieveFields, formatCodeType, formatFieldsData, retrieveCodeValues } from './shared/formatData';
+import * as he from 'he';
+import * as R from 'ramda';
+
+
+
+
+
+
+function getCodeTypeIds(CodeTypeCode){
+
+}
+function formatCode(value,type){
+
+}
+
+
+function getCodeValues(codeType){
+    let config = {...this.store.loginDetials,url:`/primeapi/restapi/codeValue/codeType/${codeType}`};
+    let codeValues = this.store.asteroid.call('call',config).then(data=>data.data);
+    return codeValues;
+
+}
+
+export default async function main(data) {
+    const getWorkspaceNames = (json) => {
+        let workspaces = R.uniqBy(x=>x.workspaceId)(json);
+        return R.map(x=>x.workspaceId)(workspaces);
+    };
+    const getCodeTypeByWS = async (id) => {
+        let wsId = await id[1]
+        console.log(wsId);
+        let codeTypes = this.store.asteroid.call('call',{...this.store.loginDetails,url:`/primeapi/restapi/codeType/workspace/${wsId}`}).then(data=>data.data);
+
+        return {[id[0]]:codeTypes};
+    }
+
+    /*format codes to replace their key/values with IDs*/
+    const formatCodes = (codes) => {
+        console.log(codes);
+        let codeTypesByWS = R.map(getCodeTypeByWS)(codes);
+        console.log(codeTypesByWS);
+    }
+    //returns a list of workspace names from all sheets
+
+    //returns a json-formatted version of the projects template
+    const fileData = xlsxToJson(data, 'Projects');
+    const projectsJson = fileData.json;
+    console.log(projectsJson);
+    const fields = fileData.fields;
+    const codes = fileData.codes;
+    const workspaceNames = getWorkspaceNames(projectsJson);
+
+    const workspaceIds = mapIds.call(this,workspaceNames);
+
+    const projectsData = getProjects.call(this,workspaceIds);
+    const codeTypesByWS = await R.map(getCodeTypeByWS)(workspaceIds);
+    
+    //const codesData= formatCodes(codes);
+
+
+/*
+    //get the internal IDs for each unique workspace.
+    let map = (mapIds.call(this,workspaceNames)).then(async (x) => {
+        //the following code runs after the api requests for the workspaceIds have returned.
+        //removes any empty entries left from mapping the workspaceIds - a null value is given if the workspaceId did not exist.
+        let newMap = x.filter(name => name !== null);
+
+        var projectsData = getProjects.call(this,newMap);
+
+        //retrieve the data for codeTypes in a workspace.
+        var codesData = retrieveCodeData.call(this,workspaceNames, newMap).then((x) => {
+
+            let codes = new Map(x);
+            //now that we have the data for the codeTypes, we can get the Ids of the codeValues.
+            //formatCodeType returns a copy of codesJson that has the actual codeTypeId in place of the given one (which is actually the codeTypeCode)
+            let newJson = formatCodeType.call(this,projectsJson, codes);
+            console.log(newJson);
+            //now we use the codeTypeIds to get the internal codeValueIds of the ones given.
+            let codeValues = retrieveCodeValues.call(this,newJson).then((x) => {
+                return transform(x, (acc, json, ) => {
+                    let findId = findIndex(acc, (x) => (x.projectId === json.projectId && x.workspaceId === json.workspaceId));
+                    if (findId === -1) {
+                        acc.push({ projectId: json.projectId, workspaceId: json.workspaceId, codeValuesProject: [{ codeValue: { codeTypeId: json.codeTypeId, codeValueId: json.codeValueId } }] });
+                    } else if (findId >= 0) {
+                        acc[findId].codeValuesProject.push({ codeValue: { codeValueId: json.codeValueId, codeTypeId: json.codeTypeId } });
+                    }
+                });
+            });
+            return codeValues;
+        });
+        //retrieve the configured fields data on each workspace
+        var fieldsData = retrieveFields.call(this,workspaceNames, newMap).then((x) => {
+            let fields = new Map(x);
+            //fields data is stored in 'flexmaps', this function arranges the data into the required upload format
+            /*  let f = formatFieldsData.call(this,fieldsJson, fields);
+            return transform(f, (acc, json, ) => {
+                //checks if the project has been entered into the 'projects' sheet.
+                let findId = findIndex(acc, (x) => (x.projectId === json.projectId && x.workspaceId === json.workspaceId));
+                //if it isn't found, add a new entry
+                if (findId === -1) {
+                    acc.push({ projectId: json.projectId, workspaceId: json.workspaceId, projectConfiguredFields: json.projectConfiguredFields });
+                    //if it is found, add it to the found entry
+                } else if (findId >= 0) {
+                    merge(acc[findId].projectConfiguredFields, json.projectConfiguredFields);
+                }
+            });
+        });
+        //returns a promise that resolves when all the promises contained in it have resolved
+        return Promise.all([projectsData, fieldsData, codesData, newMap]);
+    });
+    //wait until the return Promise resolves (and by extension, the 4 promises in the array map returns will have all resolved)
+    const [projectData, fieldsData, codesData, newMap] = await map;
+    //projectsBase is a copy of projectsJson with erroneous values removed
+
+    const projectsBase = projectsJson.filter((x) => (find(newMap, (id) => (id[0] === x.workspaceId)) !== undefined));
+    //convert the array of key-value pairs into a Map object - allowing values to be returned using Map.get(key)
+    const projectsDataFiltered = projectsData.filter((x)=>x!==undefined)
+
+    const projectsDataEscaped =projectsDataFiltered.map(v=>[v[0],unescape(v[1])]);
+
+    //const workspaceIds = new Map(newMap);
+
+    const existing = new Map(projectsDataEscaped);
+
+    //adds all codesData to projectsBase, either adding to an existing project or creating a new item in the array if it already exists
+    const projectsCodes = transform(projectsBase, (acc, project) => {
+
+
+
+        let code = find(codesData, (c) => (c.projectId === project.projectId && c.workspaceId === project.workspaceId));
+        //if code returns defined, a project for it exists in the projects sheet already, so add it to that entry
+        if (code !== undefined) {
+            acc.push({ ...project, projectId: code.projectId, codeValuesProject: code.codeValuesProject, workspaceId: project.workspaceId });
+            //if it doesn't exist, it may still already exist in prime, so check if it already exists in 'existing', otherwise throw up an exception that it isn't a real code.
+        } else {
+            acc.push({ ...project, projectCode: project.projectId });
+            let a = projectInProjectsArray(code, existing);
+            if (a !== undefined) {
+                acc.push({ projectId: a.projectId, workspaceId: a.workspaceId, codeValuesProject: code.codeValuesProject });
+            }
+        }
+    });
+    const projectsFields = transform(projectsCodes, (acc, project) => {
+        let fields = find(fieldsData, (f) => (f.projectId === project.projectId && f.workspaceId === project.workspaceId));
+        if (fields !== undefined) {
+            acc.push({ ...project, projectConfiguredFields: fields.projectConfiguredFields, workspaceId: project.workspaceId });
+        } else {
+            acc.push({ ...project, });
+            let a = projectInProjectsArray(fields, existing);
+            if (a !== undefined) {
+                acc.push({ projectId: a.projectId, workspaceId: a.workspaceId, projectConfiguredFields: fields.projectConfiguredFields });
+            }
+        }
+    });
+    //generates the array of projects to update using PUT
+    var update = transform(projectsFields, (acc, p) => {
+
+        let a = projectInProjectsArray(p, existing);
+        if (a !== undefined) {
+            acc.push({ ...p,percentComplete:Number(p.percentComplete), workspaceId: workspaceIds.get(p.workspaceId), projectId: a.projectId });
+        }
+    });
+    //generates the array of projects to create using POST
+    var create = transform(projectsFields, (acc, p) => {
+        let a = projectInProjectsArray(p, existing);
+        if (a === undefined) {
+            let { projectId, ...noId } = p;
+            acc.push({ ...noId, workspaceId: workspaceIds.get(p.workspaceId), projectCode: p.projectId, percentComplete:Number(p.percentComplete)});
+        }
+    });
+    console.log(create);
+    console.log(update);
+    //initialises the variables for the server connection and login
+    const connection = this.store.asteroid;
+    let login = this.store.loginDetails;
+    //constructs axios configs for putting and posting the update and create json objects
+
+    for (let i  of create) {
+        connection.call('call',{...login,method:'post',url:'/primeapi/restapi/project/',data:i}).then(x=>{console.log(x);})
+
+    }
+    for (let i  of update) {
+        connection.call('call',{...login,method:'put',url:'/primeapi/restapi/project/',data:i}).then(x=>{console.log(x);})
+
+    }
+    /*
+    //send this data to run on the server if there is any data to send
+   console.log(update);
+    if (update.length>0){
+        connection.call('call', putLogin).then(x=>{console.log(x);});
+    }
+    if (create.length>0){
+        connection.call('call', postLogin).then(x=>{console.log(x);});
+    }
+    */
+}
+const unescape = (array)=>array.map(x=>{
+    return {...x,projectCode:he.decode(x.projectCode)};});

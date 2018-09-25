@@ -1,0 +1,192 @@
+/*globals*/
+import { xlsxToJson } from './shared/newJson';
+import {findIndex, transform, merge, find } from 'lodash';
+import { getProjects } from './shared/getProjects';
+import workspaces from './shared/workspaces';
+import mapIds from './shared/mapIds';
+import { projectInProjectsArray } from './shared/checkExists';
+import { retrieveCodeData, retrieveFields, formatCodeType, formatFieldsData, retrieveCodeValues } from './shared/formatData';
+import * as he from 'he';
+import * as R from 'ramda';
+import * as Promise from 'bluebird';
+
+
+
+
+
+function getCodeTypeIds(CodeTypeCode){
+
+}
+function formatCode(value,type){
+
+}
+
+
+
+export default async function main(data) {
+
+    const dispatchError = error => {
+        if (!R.find(R.match(error))(this.store.exceptions)){
+            this.dispatch({type:'SEND_EXCEPTIONS',data:error})
+        }
+    }
+
+
+
+    const submitProject = async (p) =>{
+
+        Promise.props(p).then(p=>{
+            console.log(p);
+            console.log(2);
+            //let o = R.zipObj(Object.keys(await newProject))(p)
+            //console.log(o);
+            return this.store.asteroid.call('call',{...this.store.loginDetails,data:p,method: p.projectId?'put':'post',url:'primeapi/restapi/project'}).then(x=>{console.log(x.data);})})}
+
+
+
+
+
+    const getWorkspaceId = name => {
+
+        let ws = this.store.asteroid.call('call',{...this.store.loginDetails,url:`primeapi/restapi/workspace/code/${name}`}).then((r) => {
+
+            switch (r.success) {
+                //if success, return the workspaceID (it always returns in an array, I haven't ever seen it with more than one item)
+                case true:
+                console.log(1);
+                    return  r.data[0].workspaceId;
+                    //if false then the request failed, sending an error message back
+
+                default:
+                    this.dispatch({type:'SEND_EXCEPTIONS',data:`workspace ${name} doesn't exist`});
+                    return null;
+
+            }
+        });
+
+        return ws
+    };
+
+    const getCodeTypeByWS = async (id) => {
+
+
+        let codeTypes = this.store.asteroid.call('call',{...this.store.loginDetails,url:`/primeapi/restapi/codeType/workspace/${await id}`}).then(data=>data.data);
+
+        return codeTypes;
+    };
+
+    const getFieldsByWS = async id => {
+        return this.store.asteroid.call('call',{...this.store.loginDetails,url:`/primeapi/restapi/field/workspace/${await id}`}).then(data=>data.data);
+    };
+
+
+    const getProjectsByWS = async id => {
+        return this.store.asteroid.call('call',{...this.store.loginDetails,url:`primeapi/restapi/project/workspace/${await id}`}).then(x=>x.data);
+    };
+    //returns a json-formatted version of the input excel file with sheet named 'Projects'
+    const projectsJson = xlsxToJson(data, 'Projects');
+
+    const projectMap =async project => {
+
+        const codeMap = async (codeValue,codeType) => {
+
+            let type = R.find(R.propEq('codeTypeCode',codeType))(await types);
+            if (type===undefined) {
+                dispatchError(`codeType ${codeType} does not exist in workspace ${project.workspaceId}`);
+                return null;
+            }
+            let codeTypeId = type.codeTypeId;
+            let codeValueId = await this.store.asteroid.call('call',{...this.store.loginDetails,url:`/primeapi/restapi/codeValue/code/${codeValue}/codeType/${codeTypeId}`}).then(x=>x.data[0].codeValueId);
+
+            let x = {codeValue:{codeTypeId:codeTypeId,codeValueId:codeValueId}};
+
+            return x
+
+        };
+
+        const fieldMap =async (value,fieldName) => {
+
+            let field = R.find(R.propEq('viewColumnName',fieldName))(await fieldsData);
+            if (field===undefined) {
+                dispatchError(`field ${fieldName} does not exist in workspace ${project.workspaceId}`);
+                return null;
+            }
+            console.log(field.dataType);
+            switch (field.dataType) {
+                case 'FT_TEXT':
+                    return {projectConfiguredFields:{textFlexMap:{[fieldName]:value}}};
+                case 'FT_MONEY':
+                    return {projectConfiguredFields:{costFlexMap:{[fieldName]:value}}};
+                default:
+                    return {projectConfiguredFields:{otherFlexMap:{[fieldName]:value}}};
+            }
+
+        };
+
+
+        const getExistingProject = async (projects,projectId) => {
+            return R.find(R.propEq('projectCode',projectId))(await projects);
+        }
+
+        let workspaceId =getWorkspaceId(project.workspaceId)
+        console.log(5);
+        console.log(workspaceId);
+        let projects = getProjectsByWS(workspaceId);
+
+        let existingProject = getExistingProject(projects,project.projectId)
+
+        let types = getCodeTypeByWS(workspaceId);
+        let fieldsData = getFieldsByWS(workspaceId);
+        let codes = Promise.all(R.values(R.mapObjIndexed(codeMap)(project.codes)))
+
+        let fields = R.values(R.mapObjIndexed(fieldMap)(project.fields));
+
+        const f = async (acc,value) => {
+
+            return R.mergeDeepRight(await acc,await value);
+        };
+        const reduceFields = async (fields) => (R.reduce(f)({})(await fields))
+
+        let reducedFields = reduceFields(fields);
+
+        let oldProject = R.omit(['codes','fields','projectId','financial'])({...project,workspaceId:workspaceId,projectCode:project.projectId, codeValuesProject:codes,...reducedFields});
+
+        const mergeProjects = async (oldProject,existingProject) =>{
+
+            return R.mergeDeepRight( await existingProject || {})(oldProject);}
+
+        let newProject = mergeProjects(oldProject,existingProject)
+
+        return submitProject(newProject);
+    };
+
+
+
+
+
+    let newJson = R.map(projectMap)(projectsJson);
+    let submit = Promise.all(newJson);
+    return await submit
+//    let submittal = R.map(submitProject)(newJson)
+//    console.log(submittal);
+    //return await Promise.all(submittal)
+    // let done = await Promise.all(newJson)
+    // console.log(done);
+    // return done
+    // const codeMap = project =>{
+    //     let f = (codeType,codeValue) => {
+    //         let types = getCodeTypeByWS
+    // }
+    //     return  R.forEachObjIndexed(f)(project.codes);
+    //
+    // };}
+
+}
+
+
+
+
+
+
+const unescape = (array)=>array.map(x=>{
+    return {...x,projectCode:he.decode(x.projectCode)};});
